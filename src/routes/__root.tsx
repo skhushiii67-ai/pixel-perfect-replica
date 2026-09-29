@@ -11,6 +11,14 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { CartProvider } from "@/store/cart";
+import { ToastProvider } from "@/store/toast";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { CartDrawer } from "@/components/CartDrawer";
+import { FloatingCartBar } from "@/components/FloatingCartBar";
+import { BottomNav } from "@/components/BottomNav";
+import { FlyToCart } from "@/components/FlyToCart";
 
 function NotFoundComponent() {
   return (
