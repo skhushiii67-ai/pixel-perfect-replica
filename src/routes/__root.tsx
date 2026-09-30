@@ -19,6 +19,8 @@ import { CartDrawer } from "@/components/CartDrawer";
 import { FloatingCartBar } from "@/components/FloatingCartBar";
 import { BottomNav } from "@/components/BottomNav";
 import { FlyToCart } from "@/components/FlyToCart";
+import { UIProvider } from "@/store/ui";
+import { AppOverlays } from "@/components/AppOverlays";
 
 function NotFoundComponent() {
   return (
@@ -133,16 +135,19 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
         <CartProvider>
-          <Header />
-          <main className="min-h-screen">
-            {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-            <Outlet />
-          </main>
-          <Footer />
-          <CartDrawer />
-          <FloatingCartBar />
-          <BottomNav />
-          <FlyToCart />
+          <UIProvider>
+            <Header />
+            <main className="min-h-screen">
+              {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+              <Outlet />
+            </main>
+            <Footer />
+            <CartDrawer />
+            <FloatingCartBar />
+            <BottomNav />
+            <FlyToCart />
+            <AppOverlays />
+          </UIProvider>
         </CartProvider>
       </ToastProvider>
     </QueryClientProvider>

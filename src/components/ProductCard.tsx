@@ -4,10 +4,12 @@ import type { Product } from "@/data/products";
 import { discountPercent, formatINR } from "@/lib/format";
 import { useCart } from "@/store/cart";
 import { useToast } from "@/store/toast";
+import { useUI } from "@/store/ui";
 import { QtyStepper } from "./QtyStepper";
 
 export function ProductCard({ product }: { product: Product }) {
   const { add, setQty, qtyOf } = useCart();
+  const { openProductDetail } = useUI();
   const toast = useToast();
   const imgRef = useRef<HTMLDivElement>(null);
   const unit = product.units[0]!;
@@ -23,7 +25,9 @@ export function ProductCard({ product }: { product: Product }) {
     <article className="group relative flex h-full flex-col rounded-xl border border-border bg-card p-3 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift">
       <div
         ref={imgRef}
-        className="relative mb-3 grid aspect-square place-items-center overflow-hidden rounded-lg bg-muted"
+        onClick={() => openProductDetail(product)}
+        className="relative mb-3 grid aspect-square cursor-pointer place-items-center overflow-hidden rounded-lg bg-muted"
+        title="View details"
       >
         <span
           aria-hidden="true"
@@ -47,7 +51,12 @@ export function ProductCard({ product }: { product: Product }) {
         <Clock className="h-3 w-3" aria-hidden="true" />
         {product.deliveryTime} mins
       </p>
-      <h3 className="mt-1 line-clamp-2 text-sm font-semibold leading-snug">{product.name}</h3>
+      <h3
+        onClick={() => openProductDetail(product)}
+        className="mt-1 line-clamp-2 cursor-pointer text-sm font-semibold leading-snug hover:text-primary transition-colors"
+      >
+        {product.name}
+      </h3>
       <p className="mt-0.5 text-xs text-muted-foreground">{unit.label}</p>
 
       <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">

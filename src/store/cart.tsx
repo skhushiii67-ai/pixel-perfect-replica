@@ -39,6 +39,7 @@ type CartContextValue = {
   openCart: () => void;
   closeCart: () => void;
   add: (product: Product, unitLabel?: string, origin?: DOMRect) => void;
+  addBatch: (items: Array<{ product: Product; unitLabel?: string; qty?: number }>) => void;
   setQty: (productId: string, unitLabel: string, qty: number) => void;
   remove: (productId: string, unitLabel: string) => void;
   clear: () => void;
@@ -111,6 +112,23 @@ export function CartProvider({ children }: { children: ReactNode }) {
       flyId.current += 1;
       setFlyRequest({ id: flyId.current, emoji: product.emoji, from: origin });
     }
+  }, []);
+
+  const addBatch = useCallback((items: Array<{ product: Product; unitLabel?: string; qty?: number }>) => {
+    setLines((prev) => {
+      const next = [...prev];
+      for (const item of items) {
+        const label = item.unitLabel ?? item.product.units[0]!.label;
+        const addQty = item.qty ?? 1;
+        const i = next.findIndex((l) => l.productId === item.product.id && l.unitLabel === label);
+        if (i === -1) {
+          next.push({ productId: item.product.id, unitLabel: label, qty: addQty });
+        } else {
+          next[i] = { ...next[i]!, qty: next[i]!.qty + addQty };
+        }
+      }
+      return next;
+    });
   }, []);
 
   const setQty = useCallback((productId: string, unitLabel: string, qty: number) => {
@@ -189,6 +207,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     openCart: () => setOpen(true),
     closeCart: () => setOpen(false),
     add,
+    addBatch,
     setQty,
     remove,
     clear: () => setLines([]),

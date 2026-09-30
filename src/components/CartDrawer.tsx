@@ -1,17 +1,20 @@
 import { useEffect, useState } from "react";
-import { Sparkles, Tag, Trash2, Truck, X } from "lucide-react";
+import { Sparkles, Tag, Trash2, Truck, X, Plus, ArrowRight } from "lucide-react";
 import {
   FREE_DELIVERY_THRESHOLD,
   useCart,
 } from "@/store/cart";
+import { useUI } from "@/store/ui";
 import { formatINR } from "@/lib/format";
 import { useToast } from "@/store/toast";
+import { products } from "@/data/products";
 import { QtyStepper } from "./QtyStepper";
 
 const TIPS = [10, 20, 30, 50];
 
 export function CartDrawer() {
   const cart = useCart();
+  const ui = useUI();
   const toast = useToast();
   const [code, setCode] = useState("");
   const [tip, setTip] = useState(0);
@@ -36,6 +39,11 @@ export function CartDrawer() {
   const remaining = Math.max(0, FREE_DELIVERY_THRESHOLD - cart.itemTotal);
   const progress = Math.min(100, (cart.itemTotal / FREE_DELIVERY_THRESHOLD) * 100);
   const grandTotal = cart.total + tip;
+
+  // AI smart suggestion: pick an item not in cart
+  const suggestedProduct = products.find(
+    (p) => !cart.lines.some((l) => l.productId === p.id) && ["p46", "p12", "p2", "p9"].includes(p.id),
+  ) || products[0]!;
 
   return (
     <div className="fixed inset-0 z-[80]">
@@ -79,8 +87,11 @@ export function CartDrawer() {
             </p>
             <button
               type="button"
-              onClick={cart.closeCart}
-              className="mt-2 rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
+              onClick={() => {
+                cart.closeCart();
+                ui.openCategoryExplorer();
+              }}
+              className="mt-2 rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover shadow-soft"
             >
               Start shopping
             </button>
@@ -93,7 +104,7 @@ export function CartDrawer() {
                   <Truck className="h-4 w-4 text-primary" aria-hidden="true" />
                   {remaining > 0
                     ? `Add ${formatINR(remaining)} more for free delivery`
-                    : "Yay! Free delivery unlocked"}
+                    : "Yay! Free delivery unlocked 🎉"}
                 </p>
                 <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
                   <div
@@ -182,16 +193,40 @@ export function CartDrawer() {
                 )}
               </div>
 
-              {/* AI savings panel (static preview until the AI service lands) */}
-              <div className="ai-gradient-border mt-3 rounded-xl p-3">
-                <p className="flex items-center gap-2 text-sm font-bold">
-                  <Sparkles className="h-4 w-4 text-ai-2" aria-hidden="true" />
-                  <span className="ai-gradient-text">Smart savings</span>
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Swap suggestions arrive with the AI assistant in the next step.
-                </p>
-              </div>
+              {/* AI Smart Savings & Complement Addon */}
+              {suggestedProduct && (
+                <div className="ai-gradient-border mt-3 rounded-xl p-3">
+                  <div className="flex items-center justify-between">
+                    <p className="flex items-center gap-1.5 text-xs font-bold">
+                      <Sparkles className="h-4 w-4 text-ai-2" aria-hidden="true" />
+                      <span className="ai-gradient-text">Frequently Paired Together</span>
+                    </p>
+                    <span className="text-[10px] text-muted-foreground font-semibold">AI Pick</span>
+                  </div>
+
+                  <div className="mt-2 flex items-center justify-between rounded-lg bg-background/80 p-2 text-xs">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-xl shrink-0">{suggestedProduct.emoji}</span>
+                      <div className="min-w-0 truncate">
+                        <p className="font-bold truncate text-foreground">{suggestedProduct.name}</p>
+                        <p className="text-[11px] text-muted-foreground">
+                          {suggestedProduct.units[0]?.label} · {formatINR(suggestedProduct.price)}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        cart.add(suggestedProduct);
+                        toast(`Added ${suggestedProduct.name} to cart`);
+                      }}
+                      className="flex shrink-0 items-center gap-1 rounded-lg bg-primary px-2.5 py-1 text-xs font-bold text-primary-foreground hover:bg-primary-hover active:scale-95"
+                    >
+                      <Plus className="h-3 w-3" /> Add
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Instructions + tip */}
               <div className="mt-3 rounded-xl border border-border bg-card p-3">
@@ -205,7 +240,7 @@ export function CartDrawer() {
                   id="delivery-instructions"
                   value={instructions}
                   onChange={(e) => setInstructions(e.target.value)}
-                  placeholder="Ring the bell twice"
+                  placeholder="Ring the bell twice, leave with guard"
                   className="mt-2 h-10 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none"
                 />
                 <p className="mt-3 text-xs font-bold uppercase tracking-wide text-muted-foreground">
@@ -262,8 +297,11 @@ export function CartDrawer() {
             <div className="border-t border-border bg-card p-4">
               <button
                 type="button"
-                onClick={() => toast("Checkout arrives in the next step")}
-                className="flex h-13 w-full items-center justify-between rounded-xl bg-primary px-5 py-4 text-sm font-extrabold text-primary-foreground shadow-soft transition-colors hover:bg-primary-hover"
+                onClick={() => {
+                  cart.closeCart();
+                  ui.openCheckout();
+                }}
+                className="flex h-13 w-full items-center justify-between rounded-xl bg-primary px-5 py-4 text-sm font-extrabold text-primary-foreground shadow-soft transition-colors hover:bg-primary-hover active:scale-[0.99]"
               >
                 <span>{cart.itemCount} items</span>
                 <span>Proceed to Pay {formatINR(grandTotal)} →</span>
